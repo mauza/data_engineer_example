@@ -1,2 +1,7 @@
+# Local dev
 .idea
 *.pyc
+.venv
+
+# Env
+.env
