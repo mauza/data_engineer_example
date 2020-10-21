@@ -18,11 +18,12 @@ KAFKA_TOPIC = 'indeed_data_job_urls'
 
 INDEED_HOST = 'https://www.indeed.com'
 JOBS_PER_PAGE = 10
+GECKO_DRIVER_PATH = 'geckodriver'
 
 def create_driver():
     options = Options()
     options.headless = True
-    driver = webdriver.Firefox(options=options)
+    driver = webdriver.Firefox(options=options, executable_path=GECKO_DRIVER_PATH)
     return driver
 
 
