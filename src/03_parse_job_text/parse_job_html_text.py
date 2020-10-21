@@ -5,7 +5,7 @@ import urllib.parse
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
-from utils import create_driver, html_from_url, generate_kafka_consumer
+from src.utils import create_driver, html_from_url, generate_kafka_consumer
 
 load_dotenv()
 

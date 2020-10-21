@@ -1,9 +1,11 @@
 import os
+import sys
+sys.path.append('..')
 import urllib.parse
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
-from utils import create_driver, html_from_url, generate_kafka_producer, publish_job_url_to_kafka
+from src.utils import create_driver, html_from_url, generate_kafka_producer, publish_job_url_to_kafka
 
 load_dotenv()
 
