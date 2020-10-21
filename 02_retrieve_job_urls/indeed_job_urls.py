@@ -1,36 +1,33 @@
 import os
 import urllib.parse
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
 from dotenv import load_dotenv
 
-from confluent_kafka import SerializingProducer
-from confluent_kafka.serialization import StringSerializer
-from confluent_kafka.schema_registry import SchemaRegistryClient
-from confluent_kafka.schema_registry.json_schema import JSONSerializer
+from utils import create_driver, html_from_url, generate_kafka_producer, publish_job_url_to_kafka
 
 load_dotenv()
 
 KAFKA_BROKER = os.getenv('kafka_broker')
 SCHEMA_REGISTRY = os.getenv('schema_registry')
 KAFKA_TOPIC = 'indeed_data_job_urls'
+KAFKA_SCHEMA_STR = """
+    {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "indeed_job_url",
+      "description": "Job url from indeed.com",
+      "type": "object",
+      "properties": {
+        "url": {
+          "description": "a job url",
+          "type": "string"
+        }
+      },
+      "required": [ "url" ]
+    }
+    """
 
 INDEED_HOST = 'https://www.indeed.com'
 JOBS_PER_PAGE = 10
-GECKO_DRIVER_PATH = 'geckodriver'
-
-def create_driver():
-    options = Options()
-    options.headless = True
-    driver = webdriver.Firefox(options=options, executable_path=GECKO_DRIVER_PATH)
-    return driver
-
-
-def html_from_url(url, driver):
-    driver.get(url)
-    html = driver.page_source
-    return html
 
 
 def job_urls_from_html(html, ensure_query_contains='data'):
@@ -69,65 +66,10 @@ def find_job_urls(query, location, sort='date'):
         driver.quit()
 
 
-def retrieve_key_from_url(url):
-    if 'jk=' in url:
-        return url.split('jk=')[1].split('&')[0]
-    elif 'fccid=' in url:
-        return url.split('fccid=')[1].split('&')[0]
-    else:
-        print(f'failed url: {url}')
-        return url
-
-
-def delivery_report(err, msg):
-    if err is not None:
-        print("Delivery failed for User record {}: {}".format(msg.key(), err))
-        return
-    print('User record {} successfully produced to {} [{}] at offset {}'.format(
-        msg.key(), msg.topic(), msg.partition(), msg.offset()))
-
-
-def publish_job_url_to_kafka(url, kafka_producer):
-    key = retrieve_key_from_url(url)
-    kafka_producer.produce(topic=KAFKA_TOPIC, key=key, value=url, on_delivery=delivery_report)
-
-
-def url_to_dict(url, ctx):
-    return {'url': url}
-
-
-def generate_kafka_producer():
-    schema_str = """
-    {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "indeed_job_url",
-      "description": "Job url from indeed.com",
-      "type": "object",
-      "properties": {
-        "url": {
-          "description": "a job url",
-          "type": "string"
-        }
-      },
-      "required": [ "url" ]
-    }
-    """
-    schema_registry_conf = {'url': SCHEMA_REGISTRY}
-    schema_registry_client = SchemaRegistryClient(schema_registry_conf)
-
-    json_serializer = JSONSerializer(schema_str, schema_registry_client, url_to_dict)
-
-    producer_conf = {'bootstrap.servers': KAFKA_BROKER,
-                     'key.serializer': StringSerializer('utf_8'),
-                     'value.serializer': json_serializer}
-
-    return SerializingProducer(producer_conf)
-
-
 def main():
-    kafka_producer = generate_kafka_producer()
+    kafka_producer = generate_kafka_producer(KAFKA_BROKER, SCHEMA_REGISTRY, KAFKA_SCHEMA_STR)
     for job_url in find_job_urls('data engineer', 'Utah'):
-        publish_job_url_to_kafka(job_url, kafka_producer)
+        publish_job_url_to_kafka(job_url, KAFKA_TOPIC, kafka_producer)
 
 
 if __name__ == "__main__":
