@@ -5,8 +5,8 @@
 
 # Env
 .env
-EXTERNAL
-DATA
+external
+data
 
 # Misc
 *.log
