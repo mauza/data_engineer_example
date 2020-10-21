@@ -15,15 +15,14 @@ def retrieve_key_from_url(url):
     elif 'fccid=' in url:
         return url.split('fccid=')[1].split('&')[0]
     else:
-        print(f'failed url: {url}')
         return url
 
 
 def delivery_report(err, msg):
     if err is not None:
-        print("Delivery failed for User record {}: {}".format(msg.key(), err))
+        print("Delivery failed for Job Url record {}: {}".format(msg.key(), err))
         return
-    print('User record {} successfully produced to {} [{}] at offset {}'.format(
+    print('Job Url record {} successfully produced to {} [{}] at offset {}'.format(
         msg.key(), msg.topic(), msg.partition(), msg.offset()))
 
 

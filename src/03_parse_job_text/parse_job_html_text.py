@@ -1,7 +1,6 @@
 import os
 import sys
 sys.path.append('..')
-import urllib.parse
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
@@ -9,10 +8,9 @@ from src.utils import create_driver, html_from_url, generate_kafka_consumer
 
 load_dotenv()
 
-INDEED_HOST = 'https://www.indeed.com'
+DATA_DIR = '../data'
 
 KAFKA_BROKER = os.getenv('kafka_broker')
-SCHEMA_REGISTRY = os.getenv('schema_registry')
 KAFKA_TOPIC = 'indeed_data_job_urls'
 KAFKA_SCHEMA_STR = """
     {
@@ -31,8 +29,8 @@ KAFKA_SCHEMA_STR = """
     """
 
 
-def main():
-    consumer = generate_kafka_consumer(KAFKA_BROKER, KAFKA_SCHEMA_STR, 'group2')
+def consume_topic(group_name):
+    consumer = generate_kafka_consumer(KAFKA_BROKER, KAFKA_SCHEMA_STR, group_name)
     consumer.subscribe([KAFKA_TOPIC])
     while True:
         try:
@@ -41,13 +39,41 @@ def main():
                 continue
 
             url = msg.value()
+            key = msg.key()
+            offset = msg.offset()
+            partition = msg.partition()
             if url is not None:
-                print(url)
+                process_url(url, key, offset, partition)
         except KeyboardInterrupt:
             break
 
     consumer.close()
 
 
+def job_description_from_url(url):
+    driver = create_driver()
+    try:
+        html = html_from_url(url, driver)
+    finally:
+        driver.close()
+    soup = BeautifulSoup(html, 'html.parser')
+    job_div = soup.find('div', {'class': 'jobsearch-JobComponent icl-u-xs-mt--sm jobsearch-JobComponent-bottomDivider'})
+    job_description = '\n'.join(list(job_div.strings))
+    return job_description
+
+
+def save_to_flat_file(data, filename):
+    with open(f'{DATA_DIR}/{filename}.txt', 'w') as f:
+        f.write(data)
+
+
+def process_url(url, key, offset, partition):
+    description = job_description_from_url(url)
+    data = '\n'.join([key, description])
+    filename = f'{partition}__{offset}'
+    save_to_flat_file(data, filename)
+
+
 if __name__ == "__main__":
-    main()
+    group_name = 'parse_job_urls_v1'
+    consume_topic(group_name)
