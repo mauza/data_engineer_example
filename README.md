@@ -29,7 +29,7 @@ Spark or Dask to read from the kafka stream and create parquet files. Parquet fi
 data engineering when storing flat files.
 
 ### Step 4: You can't run from sql
-There is quite often a Warehouse that most analysts and data scientists use most often when querying company
+There is quite often a warehouse that most analysts and data scientists use most often when querying company
 or external data. Some options include Redshift, Snowflake, Presto, Big Query or Sql Server. The main draw to this
 type of system is performance. Time is valuable to an analyst or data scientist so you don't want to be waiting 
 forever for your queries to come back.

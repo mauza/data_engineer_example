@@ -48,16 +48,19 @@ def num_jobs_from_html(html):
     soup = BeautifulSoup(html, 'html.parser')
     job_count_div = soup.find('div', {'id': 'searchCountPages'})
     job_count = int(job_count_div.text.strip().split(' ')[3].replace(',', ''))
+    print(f' ----- Found {job_count} number of jobs with search criteria ----- ')
     return job_count
 
 
 def find_job_urls(query, location, sort='date'):
+    print(' ----- Finding job URLs ----- ')
     driver = create_driver()
     url_path = f"/jobs?q={urllib.parse.quote(query)}&l={location}&sort={sort}"
     try:
         html = html_from_url(f'{INDEED_HOST}{url_path}', driver)
         num_jobs = num_jobs_from_html(html)
         for i in range(0, num_jobs, JOBS_PER_PAGE):
+            print(' ----- Getting next page of jobs in search ----- ')
             current_url_path = f'{url_path}&start={i}'
             url = f'{INDEED_HOST}{current_url_path}'
             html = html_from_url(url, driver)
@@ -69,6 +72,7 @@ def find_job_urls(query, location, sort='date'):
 
 
 def main():
+    print(' ----- Creating Kafka producer ----- ')
     kafka_producer = generate_kafka_producer(KAFKA_BROKER, SCHEMA_REGISTRY, KAFKA_SCHEMA_STR)
     for job_url in find_job_urls('data engineer', 'Utah'):
         publish_job_url_to_kafka(job_url, KAFKA_TOPIC, kafka_producer)

@@ -8,7 +8,7 @@ from src.utils import create_driver, html_from_url, generate_kafka_consumer
 
 load_dotenv()
 
-DATA_DIR = '../data'
+DATA_DIR = '../data/job_descriptions'
 
 KAFKA_BROKER = os.getenv('kafka_broker')
 KAFKA_TOPIC = 'indeed_data_job_urls'
@@ -30,6 +30,7 @@ KAFKA_SCHEMA_STR = """
 
 
 def consume_topic(group_name):
+    print(f' ----- Consuming topic {KAFKA_TOPIC} with group name: {group_name} -----')
     consumer = generate_kafka_consumer(KAFKA_BROKER, KAFKA_SCHEMA_STR, group_name)
     consumer.subscribe([KAFKA_TOPIC])
     while True:
@@ -70,7 +71,7 @@ def save_to_flat_file(data, filename):
 
 def process_url(url, key, offset, partition):
     description = job_description_from_url(url)
-    data = '\n'.join([key, description])
+    data = '\n'.join([url, key, description])
     filename = f'{partition}__{offset}'
     save_to_flat_file(data, filename)
 
