@@ -65,6 +65,7 @@ def job_description_from_url(url):
 
 
 def save_to_flat_file(data, filename):
+    print(f' ----- Saving data to file: {filename} ----- ')
     with open(f'{DATA_DIR}/{filename}.txt', 'w') as f:
         f.write(data)
 
