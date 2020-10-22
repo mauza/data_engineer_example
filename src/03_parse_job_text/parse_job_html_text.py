@@ -43,6 +43,7 @@ def consume_topic(group_name):
             offset = msg.offset()
             partition = msg.partition()
             if url is not None:
+                print(f'received and processing url: {url}')
                 process_url(url, key, offset, partition)
         except KeyboardInterrupt:
             break

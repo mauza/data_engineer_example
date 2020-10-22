@@ -11,7 +11,7 @@ look for when hiring data engineers.
 
 ## The Steps
  
-[put pretty diagram here]
+![put pretty diagram here](https://app.lucidchart.com/publicSegments/view/4e6a8158-44a9-4f8d-ae0c-b2a2667bcb80/image.png)
 
 ### Step 1: Data at the source
 

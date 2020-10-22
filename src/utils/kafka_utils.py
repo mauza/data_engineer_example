@@ -28,6 +28,7 @@ def delivery_report(err, msg):
 
 def publish_job_url_to_kafka(url, kafka_topic, kafka_producer):
     key = retrieve_key_from_url(url)
+    print(f'publishing url: {url}')
     kafka_producer.produce(topic=kafka_topic, key=key, value=url, on_delivery=delivery_report)
 
 
