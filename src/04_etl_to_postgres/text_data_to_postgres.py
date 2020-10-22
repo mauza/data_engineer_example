@@ -61,7 +61,8 @@ def process_files():
             for file in files_to_process:
                 process_file(file)
                 files_processed.append(file)
-            sleep(2)
+            print(' ----- Waiting for more files ----- ')
+            sleep(5)
         except KeyboardInterrupt:
             break
 
