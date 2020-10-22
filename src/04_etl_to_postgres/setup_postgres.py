@@ -28,6 +28,9 @@ def run_ddl(ddl):
     ) as conn:
        run_sql(conn, ddl)
 
+def recreate_table():
+    run_ddl(DELETE_DDL)
+    run_ddl(CREATE_DDL)
 
 if __name__ == '__main__':
-    run_ddl(CREATE_DDL)
+    recreate_table()
